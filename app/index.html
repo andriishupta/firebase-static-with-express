@@ -6,10 +6,27 @@
     <title>Welcome to Firebase Hosting</title>
   </head>
   <body>
-    <div id="app">Loading...</div>
+    <div id="rules">Rules health...</div>
+    <div id="app">Loading app...</div>
     <script defer>
+      const rules = document.getElementById('rules');
       const app = document.getElementById('app');
-      fetch('/api/health').then(res => res.text()).then(message => app.innerText = 'app updated! ' + message);
+
+      fetch('/api/health').then(res => res.json()).then(rulesResponse => {
+        rules.innerText = `Database rules:
+          read: ${ rulesResponse.rules['.read'] };
+          write: ${ rulesResponse.rules['.write'] };
+        `;
+      });
+
+      fetch('/api/projects').then(res => res.json()).then(projects => {
+        const projectsLis = Object.keys(projects).map(key => `<li><a href="${ projects[key] }">${ key }</a></li>`);
+        app.innerHTML = `
+          <ul>
+            ${ projectsLis }
+          </ul>
+        `;
+      });
     </script>
   </body>
 </html>

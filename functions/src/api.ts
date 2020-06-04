@@ -1,17 +1,19 @@
-// import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as express from 'express';
-
-admin.initializeApp();
-
 const router = express.Router();
 
-router.get('/health', (req, res) => {
-  return res.json({ message: 'api functions are running!' });
+admin.initializeApp(functions.config().firebase);
+const db = admin.database();
+const projects = db.ref('projects');
+
+router.get('/health', async (req, res) => {
+  res.end(await db.getRules());
+  return;
 });
 
-router.get('/projects', (req, res) => {
-  return res.json([1 , 2 , 3]);
+router.get('/projects', async (req, res) => {
+  return res.json(await projects.once('value'));
 });
 
 router.get('**', (req, res) => {
