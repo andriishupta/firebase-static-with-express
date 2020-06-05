@@ -19,6 +19,9 @@ const _app = express();
 _app.engine('handlebars', exphbs());
 _app.set('view engine', 'handlebars');
 
+const expirationTimeMs = 10 * 60 * 1000; // 10 minutes
+const maxAgeSec = 600; // 10 minutes
+
 /** API */
 _app.get('/api/rules', async (req, res) => {
   return res.json(await getDatabaseRules(db));
@@ -29,7 +32,7 @@ _app.get('/api/resume', async (req, res) => {
 });
 
 _app.get('/api/profile-photo', async (req, res) => {
-  return res.send(await getProfilePhoto(storage, { action: 'read', expires: Date.now() + 700 }));
+  return res.send(await getProfilePhoto(storage, { action: 'read', expires: Date.now() + expirationTimeMs }));
 });
 
 _app.get('/api/**', (req, res) => {
@@ -38,11 +41,11 @@ _app.get('/api/**', (req, res) => {
 
 /** Index */
 _app.get('/', async (req, res) => {
-  res.setHeader('cache-control', 'public, max-age=600');
+  res.setHeader('cache-control', `public, max-age=${ maxAgeSec }`);
 
   const resume: Resume = await getResume(db);
   const profilePhoto =  await (process.env.NODE_ENV
-    ? getProfilePhoto(storage, { action: 'read', expires: Date.now() + 700 })
+    ? getProfilePhoto(storage, { action: 'read', expires: Date.now() + expirationTimeMs })
     : Promise.resolve('favicon.ico'));
 
   res.render('resume', {
